@@ -127,9 +127,11 @@ def _build_config(model: str, timeout_s: float):
     kwargs = dict(
         response_mime_type="application/json",
         response_schema=PlantResult,
-        temperature=0.2,
         http_options=types.HttpOptions(timeout=int(timeout_s * 1000)),
     )
+    # Для Gemini 3 Google радить не змінювати temperature; для 2.5 робимо відповіді стабільнішими.
+    if not model.startswith("gemini-3"):
+        kwargs["temperature"] = 0.2
     # Моделі Gemini 3 керуються thinking_level; для 2.5 залишаємо налаштування за замовчуванням.
     if model.startswith("gemini-3") and config.GEMINI_THINKING_LEVEL:
         kwargs["thinking_config"] = types.ThinkingConfig(thinking_level=config.GEMINI_THINKING_LEVEL.upper())
@@ -137,9 +139,11 @@ def _build_config(model: str, timeout_s: float):
 
 
 def _classify(exc: Exception) -> str:
-    """Повертає: quota | not_found | bad_request | auth | transient."""
+    """Повертає: quota | overloaded | not_found | bad_request | auth | transient."""
     code = getattr(exc, "code", None)
     text = str(exc).lower()
+    if code in (503, 504) or "unavailable" in text or "high demand" in text or "deadline" in text:
+        return "overloaded"  # модель перевантажена — одразу переходимо на наступну
     if code == 429 or "resource_exhausted" in text or "quota" in text:
         return "quota"
     if code == 404 or "not_found" in text or "is not found" in text:
@@ -225,7 +229,7 @@ def identify(image_bytes: bytes, mime: str, mode: str = "flash") -> dict:
                     raise GeminiError(
                         "Ключ Gemini API недійсний або не має доступу. Перевірте GEMINI_API_KEY.", 503, "auth", last_detail
                     )
-                if kind in ("quota", "not_found", "bad_request"):
+                if kind in ("quota", "overloaded", "not_found", "bad_request"):
                     break  # одразу пробуємо наступну модель
                 tries_left -= 1
                 if tries_left > 0:
@@ -258,6 +262,10 @@ def identify(image_bytes: bytes, mime: str, mode: str = "flash") -> dict:
             429,
             "quota",
             last_detail,
+        )
+    if last_kind == "overloaded":
+        raise GeminiError(
+            "Сервери Gemini зараз перевантажені (high demand). Спробуйте ще раз за хвилину.", 503, "overloaded", last_detail
         )
     if last_kind == "not_found":
         raise GeminiError("Модель Gemini недоступна. Перевірте назву моделі в GEMINI_MODEL.", 502, "model", last_detail)

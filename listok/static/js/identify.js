@@ -171,6 +171,7 @@
     config: "Сервіс не налаштовано",
     auth: "Проблема з ключем API",
     model: "Модель недоступна",
+    overloaded: "Gemini перевантажений",
   };
 
   function fail(title, message) { showError({ kind: "local", message, _title: title }); }

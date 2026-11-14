@@ -20,18 +20,21 @@ GEMINI_API_KEY = _env("GEMINI_API_KEY")
 
 # Основна «швидка» модель і запасні моделі (у кожної моделі окрема квота,
 # тому при вичерпанні ліміту сервіс автоматично переходить на наступну).
-GEMINI_MODEL = _env("GEMINI_MODEL", "gemini-3.8-flash")
+# Заміри 14.11.2026: gemini-3.5-flash-lite відповідає за ~1,5 с, а новіші gemini-3.8-flash /
+# gemini-3.6-flash часто повертають 503 «high demand» або відповідають 10–40 с.
+GEMINI_MODEL = _env("GEMINI_MODEL", "gemini-3.5-flash-lite")
 GEMINI_FALLBACK_MODELS = _env_list(
-    "GEMINI_FALLBACK_MODELS", "gemini-3.6-flash,gemini-3.5-flash-lite,gemini-2.5-flash"
+    "GEMINI_FALLBACK_MODELS", "gemini-2.5-flash,gemini-3.6-flash,gemini-3.8-flash"
 )
 # «Точна» модель для порівняння (Pro). gemini-2.5-pro має безкоштовний рівень.
 GEMINI_PRO_MODEL = _env("GEMINI_PRO_MODEL", "gemini-2.5-pro")
 
 # Таймаут одного запиту до Gemini (секунди) і загальний бюджет часу на всі спроби.
-GEMINI_TIMEOUT_S = float(_env("GEMINI_TIMEOUT_S", "30"))
+GEMINI_TIMEOUT_S = float(_env("GEMINI_TIMEOUT_S", "20"))
 GEMINI_TOTAL_BUDGET_S = float(_env("GEMINI_TOTAL_BUDGET_S", "55"))
 # Рівень «роздумів» для моделей Gemini 3 (minimal / low / medium / high).
-GEMINI_THINKING_LEVEL = _env("GEMINI_THINKING_LEVEL", "low")
+# Порожньо = налаштування моделі за замовчуванням (так стабільніше).
+GEMINI_THINKING_LEVEL = _env("GEMINI_THINKING_LEVEL", "")
 
 # Демо-режим без ключа: повертає заздалегідь підготовану відповідь.
 # Лише для перевірки інтерфейсу. На захисті має бути ВИМКНЕНО.
