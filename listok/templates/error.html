@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Помилка {{ code }} — Листок{% endblock %}
+{% block content %}
+<section class="intro">
+  <h1>{% if code == 404 %}Сторінку не знайдено{% else %}Щось пішло не так{% endif %}</h1>
+  <p class="lede">{% if code == 404 %}Такої адреси немає. Перевірте посилання або поверніться на головну.{% else %}{{ message }}{% endif %}</p>
+  <p><a class="btn btn-primary" href="{{ url_for('index') }}">На головну</a></p>
+</section>
+{% endblock %}

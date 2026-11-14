@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="intro">
+  <h1>Що це за рослина?</h1>
+  <p class="lede">Сфотографуйте рослину або її листя. Листок визначить вид, перевірить, чи немає ознак хвороб, підкаже, як доглядати, і чи безпечна вона для котів і собак.</p>
+</section>
+
+<div class="workspace">
+  <section class="panel upload-panel" aria-labelledby="upload-title">
+    <h2 id="upload-title" class="visually-hidden">Завантаження фото</h2>
+    <form id="identify-form" novalidate>
+      <label class="dropzone" id="dropzone" for="file-input">
+        <img id="preview" class="preview" alt="Вибране фото" hidden>
+        <span class="dropzone-empty" id="dropzone-empty">
+          <svg viewBox="0 0 48 48" aria-hidden="true" class="dz-icon"><path d="M8 34l9-11 7 8 5-6 11 9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="33" cy="15" r="3.5" fill="none" stroke="currentColor" stroke-width="2.2"/><rect x="4" y="6" width="40" height="36" rx="5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>
+          <span class="dz-title">Перетягніть фото сюди</span>
+          <span class="dz-hint">або натисніть, щоб вибрати файл. JPG, PNG, WEBP чи HEIC, до {{ max_upload_mb|int }} МБ</span>
+        </span>
+        <span class="drop-overlay" aria-hidden="true">Відпустіть, щоб додати фото</span>
+      </label>
+      <input type="file" id="file-input" name="photo" accept="image/*" class="visually-hidden">
+      <input type="file" id="camera-input" accept="image/*" capture="environment" class="visually-hidden">
+
+      <div class="file-meta" id="file-meta" hidden>
+        <span id="file-name"></span>
+        <button type="button" class="link-btn" id="clear-btn">Прибрати</button>
+      </div>
+
+      <div class="source-buttons">
+        <button type="button" class="btn btn-ghost" id="camera-btn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+          Зробити фото
+        </button>
+        <button type="button" class="btn btn-ghost" id="pick-btn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h6l2 2h8v10H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          Вибрати файл
+        </button>
+      </div>
+
+      <fieldset class="mode">
+        <legend>Модель Gemini</legend>
+        <label class="mode-option">
+          <input type="radio" name="mode" value="flash" checked>
+          <span class="mode-card">
+            <span class="mode-name">Швидко</span>
+            <span class="mode-desc">{{ flash_model }}, зазвичай 3–8 с</span>
+          </span>
+        </label>
+        <label class="mode-option">
+          <input type="radio" name="mode" value="pro">
+          <span class="mode-card">
+            <span class="mode-name">Точніше</span>
+            <span class="mode-desc">{{ pro_model }}, повільніше, менший ліміт</span>
+          </span>
+        </label>
+      </fieldset>
+
+      <button type="submit" class="btn btn-primary btn-wide" id="submit-btn" disabled>Визначити рослину</button>
+    </form>
+
+    <details class="tips">
+      <summary>Як зробити вдале фото</summary>
+      <ul>
+        <li>Сфотографуйте всю рослину або великий листок, щоб він займав більшу частину кадру.</li>
+        <li>Денне світло без спалаху дає найточніший результат.</li>
+        <li>Якщо є плями чи шкідники — додайте окреме фото зблизька.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section class="result-area" id="result-area" aria-live="polite" aria-busy="false">
+    <div class="state state-empty" id="state-empty">
+      <div class="specimen-ghost" aria-hidden="true">
+        <div class="ghost-photo"></div>
+        <div class="ghost-line w60"></div>
+        <div class="ghost-line w40"></div>
+        <div class="ghost-line w80"></div>
+      </div>
+      <p class="empty-title">Тут з'явиться картка рослини</p>
+      <p class="muted">Назва українською та латиною, стан листя, поради з поливу, світла, температури й пересадки, токсичність для тварин.</p>
+    </div>
+
+    <div class="state state-loading" id="state-loading" hidden>
+      <div class="loader" aria-hidden="true">
+        <svg viewBox="0 0 64 64" class="loader-leaf"><path d="M54 10C28 10 12 22 12 42c0 4 .8 7.6 2 10.4C18 36 30 26 44 20 32 28 22 39 16.8 54.4 19.6 56 22.8 56 26 56c20 0 28-18 28-46Z" fill="currentColor"/></svg>
+      </div>
+      <ol class="steps" id="loading-steps">
+        <li data-step="upload">Надсилаємо фото на сервер</li>
+        <li data-step="ai">Gemini розглядає листя</li>
+        <li data-step="card">Готуємо картку</li>
+      </ol>
+      <p class="elapsed"><span id="elapsed">0,0</span> с</p>
+      <p class="muted small" id="slow-hint" hidden>Довше, ніж зазвичай. Якщо сервіс щойно «прокинувся» на Render, перший запит може тривати до хвилини.</p>
+      <button type="button" class="link-btn" id="cancel-btn">Скасувати</button>
+    </div>
+
+    <div class="state state-error" id="state-error" hidden>
+      <div class="error-card" role="alert">
+        <p class="error-title" id="error-title">Не вдалося визначити рослину</p>
+        <p id="error-message"></p>
+        <p class="error-detail" id="error-detail" hidden></p>
+        <div class="error-actions">
+          <button type="button" class="btn btn-primary" id="retry-btn">Спробувати ще раз</button>
+          <button type="button" class="btn btn-ghost" id="error-new-btn">Вибрати інше фото</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="state state-result" id="state-result" hidden></div>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>window.LISTOK = { maxUploadMb: {{ max_upload_mb }} };</script>
+<script src="{{ url_for('static', filename='js/identify.js') }}?v={{ asset_v }}"></script>
+{% endblock %}
