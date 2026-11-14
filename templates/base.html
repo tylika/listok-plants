@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1D3B2F">
+  <title>{% block title %}Листок — визначення рослин за фото{% endblock %}</title>
+  <meta name="description" content="Сфотографуйте рослину — Листок визначить її назву, стан листя, поради з догляду і токсичність для тварин. На основі Google Gemini API.">
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
+  <link rel="preload" href="{{ url_for('static', filename='fonts/onest-cyrillic-400-normal.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}?v={{ asset_v }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v={{ asset_v }}">
+</head>
+<body class="page-{{ page }}">
+  <a class="skip-link" href="#main">Перейти до вмісту</a>
+
+  <div class="offline-banner" id="offline-banner" role="status" hidden>
+    Немає з'єднання з інтернетом. Визначення рослин запрацює, щойно зв'язок відновиться.
+  </div>
+  {% if mock_mode %}
+  <div class="mock-banner" role="status">Демо-режим: відповіді не від Gemini, а заздалегідь підготовані. Для перевірки інтерфейсу.</div>
+  {% endif %}
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="{{ url_for('index') }}" aria-label="Листок — на головну">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M27 5C14 5 6 11 6 21c0 2 .4 3.8 1 5.2C9 18 15 13 22 10c-6 4-11 9.5-13.6 17.2C9.8 28 11.4 28 13 28c10 0 14-9 14-23Z" fill="currentColor"/></svg>
+        <span class="brand-name">Листок</span>
+      </a>
+      <nav class="nav" aria-label="Основна навігація">
+        <a href="{{ url_for('index') }}" {% if page == 'identify' %}aria-current="page"{% endif %}>Визначити</a>
+        <a href="{{ url_for('plants_page') }}" {% if page == 'plants' %}aria-current="page"{% endif %}>Мої рослини</a>
+        <a href="{{ url_for('about_page') }}" {% if page == 'about' %}aria-current="page"{% endif %}>Як це працює</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <p>Прототип для лабораторної роботи з дисципліни «Хмарні обчислення», КНУ імені Тараса Шевченка.</p>
+      <p class="muted">Розпізнавання: Google Gemini API. Дані: {{ store_label }}. Хостинг: Render.</p>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/common.js') }}?v={{ asset_v }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

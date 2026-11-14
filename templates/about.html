@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Як це працює — Листок{% endblock %}
+{% block content %}
+<section class="intro">
+  <h1>Як це працює</h1>
+  <p class="lede">Листок не має власної нейромережі і відеокарт. «Розумну» частину виконує хмарний сервіс Google Gemini, до якого сервер звертається через API. Це модель AI as a Service.</p>
+</section>
+
+<section class="about-flow" aria-label="Схема роботи">
+  <ol class="flow">
+    <li class="flow-step">
+      <span class="flow-where">Ваш пристрій</span>
+      <strong>Браузер</strong>
+      <span>Фото зменшується до 1600 px і надсилається на сервер.</span>
+    </li>
+    <li class="flow-step">
+      <span class="flow-where">Render, PaaS</span>
+      <strong>Сервер Flask</strong>
+      <span>Перевіряє файл, стискає його, додає інструкцію і JSON-схему відповіді.</span>
+    </li>
+    <li class="flow-step flow-accent">
+      <span class="flow-where">Google Cloud, AIaaS</span>
+      <strong>Gemini API</strong>
+      <span>Мультимодальна модель аналізує фото і повертає JSON за схемою.</span>
+    </li>
+    <li class="flow-step">
+      <span class="flow-where">Supabase, DBaaS</span>
+      <strong>PostgreSQL і Storage</strong>
+      <span>Зберігає «Мої рослини» і мініатюри фото.</span>
+    </li>
+  </ol>
+</section>
+
+<section class="about-grid">
+  <article class="panel">
+    <h2>Моделі</h2>
+    <dl class="kv">
+      <dt>Основна</dt><dd><code>{{ flash_model }}</code></dd>
+      <dt>Точніша</dt><dd><code>{{ pro_model }}</code></dd>
+      <dt>Запасні</dt><dd>{% for m in fallbacks %}<code>{{ m }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</dd>
+    </dl>
+    <p class="muted small">Якщо в основної моделі вичерпано безкоштовний ліміт або вона не відповідає, сервер автоматично пробує запасну. Кожна модель має окрему квоту.</p>
+  </article>
+  <article class="panel">
+    <h2>Ціни платного рівня</h2>
+    <table class="price-table">
+      <thead><tr><th>Модель</th><th>Вхід, $ / 1 млн токенів</th><th>Вихід, $ / 1 млн токенів</th></tr></thead>
+      <tbody>
+      {% for name, p in pricing.items() %}
+        <tr><td><code>{{ name }}</code></td><td>{{ '%.2f'|format(p.input) }}</td><td>{{ '%.2f'|format(p.output) }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <p class="muted small">Ціни зі сторінки Pricing Google AI Studio станом на 14.11.2026. Один запит Листка — це близько 1–2 тис. токенів. Прототип працює на безкоштовному рівні, тобто $0.</p>
+  </article>
+  <article class="panel">
+    <h2>Чого Листок не вміє</h2>
+    <ul class="plain-list">
+      <li>Не гарантує точність: це підказка, а не висновок ботаніка чи ветеринара.</li>
+      <li>Немає облікових записів: «Мої рослини» спільні для всіх, хто відкриває сервіс.</li>
+      <li>Безкоштовний рівень Gemini має денний ліміт запитів.</li>
+      <li>Сервер на безкоштовному Render «засинає» через 15 хвилин без запитів.</li>
+    </ul>
+  </article>
+</section>
+{% endblock %}

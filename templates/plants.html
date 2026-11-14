@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Мої рослини — Листок{% endblock %}
+{% block content %}
+<section class="intro intro-row">
+  <div>
+    <h1>Мої рослини</h1>
+    <p class="lede">Усі збережені визначення. Записи зберігаються в хмарній базі даних, тому видно їх з будь-якого пристрою.</p>
+  </div>
+  <span class="store-badge store-{{ store_kind }}" title="Де зберігаються дані">{{ store_label }}</span>
+</section>
+
+<section class="stats" id="stats" aria-label="Статистика" hidden>
+  <div class="stat"><span class="stat-value" id="st-total">0</span><span class="stat-label">рослин збережено</span></div>
+  <div class="stat stat-warn"><span class="stat-value" id="st-problems">0</span><span class="stat-label">з ознаками проблем</span></div>
+  <div class="stat stat-ok"><span class="stat-value" id="st-healthy">0</span><span class="stat-label">здорових</span></div>
+  <div class="stat stat-toxic"><span class="stat-value" id="st-toxic">0</span><span class="stat-label">небезпечні для тварин</span></div>
+  <div class="stat"><span class="stat-value" id="st-latency">—</span><span class="stat-label">середній час відповіді</span></div>
+</section>
+
+<div class="health-bar" id="health-bar" hidden aria-hidden="true"><span class="hb-ok" id="hb-ok"></span><span class="hb-warn" id="hb-warn"></span></div>
+
+<div class="filters" id="filters" hidden>
+  <div class="segmented" role="group" aria-label="Фільтр">
+    <button type="button" class="seg" data-filter="all" aria-pressed="true">Усі</button>
+    <button type="button" class="seg" data-filter="problems" aria-pressed="false">З проблемами</button>
+    <button type="button" class="seg" data-filter="toxic" aria-pressed="false">Небезпечні для тварин</button>
+  </div>
+</div>
+
+<div id="plants-loading" class="plants-loading"><span class="spinner" aria-hidden="true"></span> Завантажуємо рослини…</div>
+<div id="plants-error" class="error-card" role="alert" hidden>
+  <p class="error-title">Не вдалося завантажити список</p>
+  <p id="plants-error-msg"></p>
+  <div class="error-actions"><button class="btn btn-primary" id="plants-retry">Спробувати ще раз</button></div>
+</div>
+<div id="plants-empty" class="plants-empty" hidden>
+  <p class="empty-title">Тут поки порожньо</p>
+  <p class="muted">Визначте першу рослину і натисніть «Зберегти в мої рослини».</p>
+  <a class="btn btn-primary" href="{{ url_for('index') }}">Визначити рослину</a>
+</div>
+
+<ul class="plant-grid" id="plant-grid"></ul>
+
+<dialog class="plant-dialog" id="plant-dialog" aria-labelledby="dialog-title">
+  <div class="dialog-head">
+    <button type="button" class="icon-btn" id="dialog-close" aria-label="Закрити">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div id="dialog-body"></div>
+</dialog>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/plants.js') }}?v={{ asset_v }}"></script>
+{% endblock %}
